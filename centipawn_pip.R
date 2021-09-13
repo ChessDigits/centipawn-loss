@@ -21,3 +21,6 @@ df <- add_eval_change_at_each_ply(df)
 df <- add_acpl_for_each_player(df)
 
 # acpl#1 j'avais enlevé les swings qui avaient duré juste 1 ply je pense; idem capture patterns jpense...
+
+
+ggplot(df, aes(x=WhiteElo, y=acpl_white))+geom_point()

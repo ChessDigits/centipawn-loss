@@ -7,6 +7,7 @@ fn
 
 #### imports ####
 library(dplyr)
+library(ggplot2)
 
 
 #### helper fn ####
