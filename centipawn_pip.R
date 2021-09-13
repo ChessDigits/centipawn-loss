@@ -7,8 +7,17 @@ pip
 
 source("centipawn_fn.R")
 df <- load_data(k_games = 200, use_local_file = TRUE)
+bu <- df
+df <- bu
+df <- df %>% slice_sample(n=10000)
 df <- replace_mates_with_extreme_evaluations(df)
 df <- add_eval_change_at_each_ply(df)
 
+# how to calculate centipawn loss though?? 
+# eg for white: eval after black plays is SF best move, then one ply later after white moves, this different is cpl
+# the way add_eval_change_at_each_ply() is defined seems to be this
+# need to take columns with even or odd numbers for a player
 
+df <- add_acpl_for_each_player(df)
 
+# acpl#1 j'avais enlevé les swings qui avaient duré juste 1 ply je pense; idem capture patterns jpense...

@@ -16,6 +16,10 @@ view <- utils::View
 #### variables ####
 WHITE_MATE_EVAL <- 200
 BLACK_MATE_EVAL <- WHITE_MATE_EVAL*-1
+PLIES_COLOR <- list(
+  white=seq(1, 200, by=2),
+  black=seq(2, 200, by=2)
+)
 
 
 #### load data ####
@@ -71,7 +75,6 @@ replace_mates_with_extreme_evaluations <- function(df)
 
 
 # create var eval_change
-
 add_eval_change_at_each_ply <- function(df)
 {
   "
@@ -97,4 +100,31 @@ add_eval_change_at_each_ply <- function(df)
   
 }
 
+
+# add average centipawn loss for both players at each game
+add_acpl_for_each_player <- function(df)
+{
+  "
+  input: df with eval change vars
+  output: df with vars acpl_white and acpl_black added
+  "
+  
+  # odd is white (3, 5, 7, ...)
+  # even is black (2, 4, 6, ...)
+  for (player in c("white", "black"))
+  {
+    # add acpl_player
+    v <- paste0("acpl_", player)
+    cols <- paste0("Eval_change_ply_", PLIES_COLOR[[player]])
+    cols <- cols[cols %in% colnames(df)] # Eval_change_ply_1 doesn't exist
+    df[,v] <- apply(df[,cols], 1, mean, na.rm=TRUE)
+    
+    # multiply by -1 if player is white
+    if(player == "white") df[,v] <- -1*df[,v]
+  }
+  
+  # out
+  print("Added variables acpl_white and acpl_black")
+  return(df)
+}
 
