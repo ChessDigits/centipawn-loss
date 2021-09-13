@@ -5,3 +5,96 @@ Centipawn Loss
 fn
 "
 
+#### imports ####
+library(dplyr)
+
+
+#### helper fn ####
+view <- utils::View
+
+
+#### variables ####
+WHITE_MATE_EVAL <- 200
+BLACK_MATE_EVAL <- WHITE_MATE_EVAL*-1
+
+
+#### load data ####
+load_data <- function(k_games=c(200,500), use_local_file=TRUE, dir=NULL)
+{
+  if (!use_local_file)
+  {
+    cat("Loading data directly from ChessDigits.com is very time consuming.\nWe recommend saving the data locally and setting use_local_file to TRUE.\n")
+    dir <- "https://chessdigits.com/data/"
+  } else if(is.null(dir)) dir <- "d:/Chess/databases/lichess_May2019/out/"
+  fpath <- paste0(dir, k_games, "k_blitz_rapid_classical_bullet.csv")
+  df <- read.csv(fpath, stringsAsFactors = T)
+  return(df)
+}
+
+
+#### evals ####
+
+# helper fn
+# replace mates with extreme evaluations
+replace_mates_with_extreme_evaluations <- function(df)
+{
+  eval_cols <- grep(pattern = "Eval_ply_", x=colnames(df), value=TRUE)
+  for (c in eval_cols)
+  {
+    # get row numbers at which eval is mate
+    ix_mate <- grep(pattern="#", x=df[,c], fixed = T)
+    if (length(ix_mate)==0) # no mate
+    {
+      df[,c] <- as.numeric(as.character(df[,c]))
+      next 
+    }
+    
+    # remove mate sign and make var numeric
+    new_col <- gsub(pattern = "#", replacement="", x = df[,c], fixed=T)
+    new_col <- as.numeric(as.character(new_col))
+    
+    # replace mate eval with extreme val
+    for (ix in ix_mate)
+    {
+      new_col[ix] <- ifelse(new_col[ix] < 0, BLACK_MATE_EVAL, WHITE_MATE_EVAL)
+    }
+    
+    # replace in df
+    df[,c] <- new_col
+  }
+  
+  
+  # out
+  print(paste("Replaced mate evaluations with", WHITE_MATE_EVAL, "or", BLACK_MATE_EVAL))
+  return(df)
+}
+
+
+# create var eval_change
+
+add_eval_change_at_each_ply <- function(df)
+{
+  "
+  input: df
+  output: df with mate evals replaced with 200/-200; added 'Eval_change_ply_' vars
+  "
+  # replace mates by extreme evals
+  df <- replace_mates_with_extreme_evaluations(df)
+  
+  # select eval vars
+  v <- grep(pattern = "Eval_ply_", x=colnames(df), value=TRUE)
+  
+  # calculate diff at each ply
+  eval_diffs <- t(apply(df[,v], 1, diff))
+  colnames(eval_diffs) <- paste0("Eval_change_ply_", (1:ncol(eval_diffs))+1)
+  
+  # merge
+  df <- as.data.frame(cbind(df, eval_diffs))
+  
+  # out
+  print("Added columns Eval_change_ply_")
+  return(df)
+  
+}
+
+
