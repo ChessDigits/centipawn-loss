@@ -8,7 +8,10 @@ pip
 source("centipawn_fn.R")
 df <- load_data(k_games = 200, use_local_file = TRUE)
 bu <- df
+
+#
 df <- bu
+df <- keep_games_with_minimum_number_of_moves(df, min_moves = 10, add_n_moves = FALSE)
 df <- df %>% slice_sample(n=10000)
 df <- replace_mates_with_extreme_evaluations(df)
 df <- add_eval_change_at_each_ply(df)
@@ -18,9 +21,11 @@ df <- add_eval_change_at_each_ply(df)
 # the way add_eval_change_at_each_ply() is defined seems to be this
 # need to take columns with even or odd numbers for a player
 
-df <- add_acpl_for_each_player(df)
+df <- add_acpl_for_each_player(df, fn = median)
 
 # acpl#1 j'avais enlevé les swings qui avaient duré juste 1 ply je pense; idem capture patterns jpense...
 
 
 ggplot(df, aes(x=WhiteElo, y=acpl_white))+geom_point()
+hist(df$acpl_white, breaks=1000, xlim=c(0, 100))
+view(df %>% filter(acpl_white > 120))

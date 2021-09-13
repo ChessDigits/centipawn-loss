@@ -17,9 +17,10 @@ view <- utils::View
 #### variables ####
 WHITE_MATE_EVAL <- 200
 BLACK_MATE_EVAL <- WHITE_MATE_EVAL*-1
+MAX_PLY <- 200
 PLIES_COLOR <- list(
-  white=seq(1, 200, by=2),
-  black=seq(2, 200, by=2)
+  white=seq(1, MAX_PLY, by=2),
+  black=seq(2, MAX_PLY, by=2)
 )
 
 
@@ -33,6 +34,30 @@ load_data <- function(k_games=c(200,500), use_local_file=TRUE, dir=NULL)
   } else if(is.null(dir)) dir <- "d:/Chess/databases/lichess_May2019/out/"
   fpath <- paste0(dir, k_games, "k_blitz_rapid_classical_bullet.csv")
   df <- read.csv(fpath, stringsAsFactors = T)
+  return(df)
+}
+
+
+#### data prep ####
+keep_games_with_minimum_number_of_moves <- function(df, min_moves=10, add_n_moves=FALSE)
+{
+  # determine number of moves
+  ply <- apply(df, 1, \(x)which(x[grep("Move_ply_", colnames(df))] == "")[1])
+  ply[is.na(ply)] <- MAX_PLY
+  n_moves <- ply/2
+  
+  # filter
+  df <- df[n_moves >= min_moves,]
+  
+  # add if requested
+  if(add_n_moves)
+  {
+    df$n_moves <- n_moves
+    print("Added column 'n_moves'")
+  }
+  
+  # out
+  print(paste0("Retained only games with minimum number of moves: ", min_moves))
   return(df)
 }
 
@@ -103,7 +128,7 @@ add_eval_change_at_each_ply <- function(df)
 
 
 # add average centipawn loss for both players at each game
-add_acpl_for_each_player <- function(df)
+add_acpl_for_each_player <- function(df, fn=mean) # half moves led to mate
 {
   "
   input: df with eval change vars
@@ -118,11 +143,15 @@ add_acpl_for_each_player <- function(df)
     v <- paste0("acpl_", player)
     cols <- paste0("Eval_change_ply_", PLIES_COLOR[[player]])
     cols <- cols[cols %in% colnames(df)] # Eval_change_ply_1 doesn't exist
-    df[,v] <- apply(df[,cols], 1, mean, na.rm=TRUE)
+    df[,v] <- apply(df[,cols], 1, fn, na.rm=TRUE)
     
     # multiply by -1 if player is white
     if(player == "white") df[,v] <- -1*df[,v]
+    
+    # make into actual centipawns
+    df[,v] <- 100*df[,v]
   }
+  
   
   # out
   print("Added variables acpl_white and acpl_black")
