@@ -26,6 +26,17 @@ df <- add_acpl_for_each_player(df, fn = median)
 # acpl#1 j'avais enlevé les swings qui avaient duré juste 1 ply je pense; idem capture patterns jpense...
 
 
-ggplot(df, aes(x=WhiteElo, y=acpl_white))+geom_point()
+ggplot(df, aes(x=WhiteElo, y=acpl_white))+geom_point()+ylim(c(1,200))
 hist(df$acpl_white, breaks=1000, xlim=c(0, 100))
 view(df %>% filter(acpl_white > 120))
+
+
+
+#
+df <- add_rating_differential(df)
+df_scaled <- df %>% mutate_if(is.numeric, scale)
+ana <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled)
+summary(ana)
+plot(ana)
+
+# try gam !!!! lol
