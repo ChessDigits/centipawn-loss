@@ -35,8 +35,14 @@ view(df %>% filter(acpl_white > 120))
 #
 df <- add_rating_differential(df)
 df_scaled <- df %>% mutate_if(is.numeric, scale)
-ana <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled)
-summary(ana)
-plot(ana)
+ana <- list()
+ana$lm <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled)
+summary(ana$lm)
+plot(ana$lm)
 
 # try gam !!!! lol
+ana$gam <- gam(acpl_white ~ s(rating_diff) + s(WhiteElo) + Result, data=df_scaled, method="REML")
+summary(ana$gam)
+gam.check(ana$gam)
+
+

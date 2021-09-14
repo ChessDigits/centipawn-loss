@@ -8,6 +8,7 @@ fn
 #### imports ####
 library(dplyr)
 library(ggplot2)
+library(mgcv)
 
 
 #### helper fn ####
