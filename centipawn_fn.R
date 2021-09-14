@@ -61,6 +61,15 @@ keep_games_with_minimum_number_of_moves <- function(df, min_moves=10, add_n_move
   return(df)
 }
 
+add_rating_differential <- function(df)
+{
+  df$rating_diff <- df$WhiteElo - df$BlackElo
+  
+  # out
+  print("Added 'rating_diff' as WhiteElo - BlackElo")
+  return(df)
+}
+
 
 #### evals ####
 
