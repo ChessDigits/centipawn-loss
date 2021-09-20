@@ -168,3 +168,38 @@ add_acpl_for_each_player <- function(df, fn=mean) # half moves led to mate
   return(df)
 }
 
+
+#### POV ####
+
+# add variables from the stronger player's POV
+add_vars_from_stronger_player_pov <- function(df)
+{
+  # for output
+  start_columns <- names(df)
+  
+  # make POV vars
+  # get stronger player
+  pl_stronger <- ifelse(df$rating_diff > 0, "white", "black")
+  
+  # add result
+  df$POV_Result <- case_when(
+    (df$Result == "1-0" & pl_stronger=="white") | (df$Result == "0-1" & pl_stronger=="black") ~ "Win",
+    (df$Result == "0-1" & pl_stronger=="white") | (df$Result == "1-0" & pl_stronger=="black") ~ "Loss",
+    df$Result=="1/2-1/2" ~ "Draw",
+    TRUE ~ NA_character_
+  )
+  
+  # add aCPL
+  df$POV_acpl <- ifelse(pl_stronger=="white", df$acpl_white, df$acpl_black)
+  
+  # add Elo
+  df$POV_Elo <- ifelse(pl_stronger=="white", df$WhiteElo, df$BlackElo)
+  
+  # make rating_diff POV
+  df$POV_rating_diff <- abs(df$rating_diff)
+  
+  # out
+  print("Added variables:")
+  print(setdiff(names(df), start_columns))
+  return(df)
+}

@@ -22,6 +22,8 @@ df <- add_eval_change_at_each_ply(df)
 # need to take columns with even or odd numbers for a player
 
 df <- add_acpl_for_each_player(df, fn = median)
+df <- add_rating_differential(df)
+df <- add_vars_from_stronger_player_pov(df)
 
 # acpl#1 j'avais enlevé les swings qui avaient duré juste 1 ply je pense; idem capture patterns jpense...
 
@@ -33,10 +35,9 @@ view(df %>% filter(acpl_white > 120))
 
 
 #
-df <- add_rating_differential(df)
 df_scaled <- df %>% mutate_if(is.numeric, scale)
 ana <- list()
-ana$lm <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled)
+ana$lm <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled) # probleme here: rating differential but sometimes to the advantage of white, sometimes black
 summary(ana$lm)
 plot(ana$lm)
 
@@ -46,3 +47,8 @@ summary(ana$gam)
 gam.check(ana$gam)
 
 
+
+# from stronger POV: relationship between rating and acpl
+ggplot(df %>% filter(between(POV_rating_diff,200,600)), 
+       aes(x=POV_Elo, y=POV_acpl, color=POV_rating_diff))+
+  geom_point(size=2)
