@@ -12,7 +12,7 @@ bu <- df
 #
 df <- bu
 df <- keep_games_with_minimum_number_of_moves(df, min_moves = 10, add_n_moves = FALSE)
-df <- df %>% slice_sample(n=10000)
+df <- df |> slice_sample(n=10000)
 df <- replace_mates_with_extreme_evaluations(df)
 df <- add_eval_change_at_each_ply(df)
 
@@ -30,14 +30,14 @@ df <- add_vars_from_stronger_player_pov(df)
 
 ggplot(df, aes(x=WhiteElo, y=acpl_white))+geom_point()+ylim(c(1,200))
 hist(df$acpl_white, breaks=1000, xlim=c(0, 100))
-view(df %>% filter(acpl_white > 120))
+view(df |> filter(acpl_white > 120))
 
 
 
 #
-df_scaled <- df %>% mutate_if(is.numeric, scale)
+df_scaled <- df |> mutate_if(is.numeric, scale)
 ana <- list()
-ana$lm <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled) # probleme here: rating differential but sometimes to the advantage of white, sometimes black
+ana$lm <- lm(acpl_white ~ rating_diff + WhiteElo + Result, df_scaled) # problem here: rating differential but sometimes to the advantage of white, sometimes black
 summary(ana$lm)
 plot(ana$lm)
 
@@ -49,6 +49,6 @@ gam.check(ana$gam)
 
 
 # from stronger POV: relationship between rating and acpl
-ggplot(df %>% filter(between(POV_rating_diff,200,600)), 
+ggplot(df |> filter(between(POV_rating_diff,200,600)), 
        aes(x=POV_Elo, y=POV_acpl, color=POV_rating_diff))+
   geom_point(size=2)
